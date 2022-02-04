@@ -181,6 +181,10 @@ class PosConfig(models.Model):
     limited_partners_amount = fields.Integer(default=100)
     partner_load_background = fields.Boolean()
 
+    # Deceipt config
+    deceipt_api_base_url = fields.Char(string='Deceipt API Base URL')
+    deceipt_portal_base_url = fields.Char(string='Deceipt Portal Base URL')
+
     @api.depends('payment_method_ids')
     def _compute_cash_control(self):
         for config in self:

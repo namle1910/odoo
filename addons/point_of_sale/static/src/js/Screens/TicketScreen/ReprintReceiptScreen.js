@@ -23,6 +23,10 @@ odoo.define('point_of_sale.ReprintReceiptScreen', function (require) {
                         this.showScreen('TicketScreen', { reuseSavedUIState: true });
                 }
             }
+            async tryReprintDeceipt() {
+                var orderUID = this.props.order.uid;
+                await this._printDeceipt(orderUID);
+            }
             async tryReprint() {
                 await this._printReceipt();
             }

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="DeceiptPopup" owl="1">
+        <div role="dialog" class="modal-dialog">
+            <Draggable>
+                <div class="popup popup-confirm">
+                    <header class="title drag-handle">
+                        <t t-esc="props.title" />
+                    </header>
+                    <main class="body" style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                        <t t-if="deceiptPopupState.loading == true">
+                            <i class="fa fa-spinner fa-spin" style="font-size: 2em;"/>
+                        </t>
+                        <t t-if="deceiptPopupState.loading == false">
+                            <div>
+                                <img t-att-src="props.qrCodeURI" />
+                                <div style="margin-top: 16px;">
+                                    <a t-att-href="props.deceiptURL" target="_blank" style="text-decoration: underline;">DECEIPT URL</a>
+                                </div>
+                                <div style="text-align: center; margin-top: 16px;">SCAN THE QR CODE FOR RECEIPT</div>
+                            </div>
+                        </t>
+                    </main>
+                    <footer class="footer">
+                        <div class="button confirm" t-on-click="confirm">
+                            <t t-esc="props.confirmText" />
+                        </div>
+                        <div class="button cancel" t-on-click="cancel">
+                            <t t-esc="props.cancelText" />
+                        </div>
+                    </footer>
+                </div>
+            </Draggable>
+        </div>
+    </t>
+
+</templates>

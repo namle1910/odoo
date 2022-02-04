@@ -792,6 +792,7 @@ msgstr ""
 #. openerp-web
 #: code:addons/point_of_sale/static/src/js/Popups/CashMovePopup.js:0
 #: code:addons/point_of_sale/static/src/js/Popups/ConfirmPopup.js:0
+#: code:addons/point_of_sale/static/src/js/Popups/DeceiptPopup.js:0
 #: code:addons/point_of_sale/static/src/js/Popups/EditListPopup.js:0
 #: code:addons/point_of_sale/static/src/js/Popups/ErrorBarcodePopup.js:0
 #: code:addons/point_of_sale/static/src/js/Popups/ErrorPopup.js:0
@@ -1267,6 +1268,7 @@ msgstr ""
 #. module: point_of_sale
 #. openerp-web
 #: code:addons/point_of_sale/static/src/js/Popups/ConfirmPopup.js:0
+#: code:addons/point_of_sale/static/src/js/Popups/DeceiptPopup.js:0
 #: code:addons/point_of_sale/static/src/js/Popups/NumberPopup.js:0
 #, python-format
 msgid "Confirm ?"
@@ -3329,6 +3331,7 @@ msgstr ""
 #. module: point_of_sale
 #. openerp-web
 #: code:addons/point_of_sale/static/src/js/Popups/ConfirmPopup.js:0
+#: code:addons/point_of_sale/static/src/js/Popups/DeceiptPopup.js:0
 #: code:addons/point_of_sale/static/src/js/Popups/EditListPopup.js:0
 #: code:addons/point_of_sale/static/src/js/Popups/ErrorBarcodePopup.js:0
 #: code:addons/point_of_sale/static/src/js/Popups/ErrorPopup.js:0

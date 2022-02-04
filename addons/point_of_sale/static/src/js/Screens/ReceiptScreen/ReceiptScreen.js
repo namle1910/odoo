@@ -99,6 +99,10 @@ odoo.define('point_of_sale.ReceiptScreen', function (require) {
                     this.currentOrder._printed = true;
                 }
             }
+            async printDeceipt() {
+                var orderUID = this.currentOrder.uid;
+                await this._printDeceipt(orderUID);
+            }
             _shouldAutoPrint() {
                 return this.env.pos.config.iface_print_auto && !this.currentOrder._printed;
             }
