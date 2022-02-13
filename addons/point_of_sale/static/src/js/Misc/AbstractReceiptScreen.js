@@ -39,6 +39,83 @@ odoo.define('point_of_sale.AbstractReceiptScreen', function (require) {
                 return await this._printWeb();
             }
         }
+        async _generateDeceiptQR() {
+            try {
+                var generateQRCodeBase64 = (url) => {
+                    var promise = new Promise(function (resolve, reject) {
+                        var qrcode = new QRCode(document.createElement('div'), {
+                            text: url,
+                            width: 128,
+                            height: 128,
+                            colorDark : "#000000",
+                            colorLight : "#ffffff",
+                            correctLevel : QRCode.CorrectLevel.H
+                        });
+                        qrcode._oDrawing._elImage.onload = ev => { 
+                            resolve(ev.target.src);
+                        }
+                    });
+                    return promise;
+                }
+                var showQRCode = async (url) => {
+                    var base64 = await generateQRCodeBase64(url);
+                    return await this.showPopup('DeceiptPopup', {
+                        title: "Deceipt QR",
+                        body: `<img src="${base64}">`,
+                    });
+                }
+                var htmlToImg = (receipt) => {
+                    var self = this;
+                    $('.pos-receipt-print').html(receipt);
+                    var promise = new Promise(function (resolve, reject) {
+                        var receipt = $('.pos-receipt-print>.pos-receipt');
+                        html2canvas(receipt[0], {
+                            onparsed: function(queue) {
+                                queue.stack.ctx.height = Math.ceil(receipt.outerHeight() + receipt.offset().top);
+                                queue.stack.ctx.width = Math.ceil(receipt.outerWidth() + receipt.offset().left);
+                            },
+                            onrendered: function (canvas) {
+                                $('.pos-receipt-print').empty();
+                                resolve(canvas.toDataURL('image/jpeg').replace('data:image/jpeg;base64,',''));
+                            },
+                            letterRendering: self.env.pos.htmlToImgLetterRendering(),
+                        })
+                    });
+                    return promise;
+                }
+
+                // if Deceipt QR code was generated, re-use
+                if (this.currentOrder._deceiptGenerated) {
+                    console.log("No need to generate qr code");
+                    var qrCode = this.currentOrder._deceiptURL;
+                    await showQRCode(qrCode);
+                } else {
+                    console.log("generate qr code");
+
+                    // Generate receipt image and upload
+                    // var receipt = this.orderReceipt.el.outerHTML;
+                    // var image = await htmlToImg(receipt);
+                    // var content = $.ajax({
+                    //     url: 'https://google.com',
+                    //     method: 'GET',
+                    //     timeout: 1000,
+                    // });
+        
+                    
+                    // upload successfully
+                    var deceiptURL = "https://google.com";
+                    this.currentOrder._deceiptGenerated = true;
+                    this.currentOrder._deceiptURL = deceiptURL;
+                    
+                    await showQRCode(deceiptURL);
+                }
+            } catch (e) {
+                await this.showPopup('ErrorPopup', {
+                    title: "Error when generating Deceipt QR code",
+                    body: e,
+                });
+            }
+        }
         async _printWeb() {
             try {
                 window.print();
