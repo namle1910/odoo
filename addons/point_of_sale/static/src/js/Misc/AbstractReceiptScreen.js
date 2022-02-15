@@ -41,8 +41,17 @@ odoo.define('point_of_sale.AbstractReceiptScreen', function (require) {
         }
         async _generateDeceiptQR() {
             try {
-                var generateQRCodeBase64 = (url) => {
-                    var promise = new Promise(function (resolve, reject) {
+                var API_BASE_URL = "xxx";
+                var PORTAL_BASE_URL = "xxx";
+                var qrCode = this.currentOrder._deceiptURL;
+                var isDeceiptGenerated = this.currentOrder._deceiptGenerated
+                var receiptHTML = this.orderReceipt.el.outerHTML;
+                var qrCodeURI = "";
+
+                // some work around as qrcode lib need specific DOM element to create
+                var generateQRCodeURI = (url) => {
+                    return new Promise(function (resolve, reject) {
+                        if (qrCodeURI != "") resolve(qrCodeURI);
                         var qrcode = new QRCode(document.createElement('div'), {
                             text: url,
                             width: 128,
@@ -52,22 +61,20 @@ odoo.define('point_of_sale.AbstractReceiptScreen', function (require) {
                             correctLevel : QRCode.CorrectLevel.H
                         });
                         qrcode._oDrawing._elImage.onload = ev => { 
+                            qrCodeURI = ev.target.src;
                             resolve(ev.target.src);
                         }
                     });
-                    return promise;
                 }
                 var showQRCode = async (url) => {
-                    var base64 = await generateQRCodeBase64(url);
                     return await this.showPopup('DeceiptPopup', {
                         title: "Deceipt QR",
-                        body: `<img src="${base64}">`,
+                        body: `<img src="${await generateQRCodeURI(url)}"><div><a href="${url}" target="_blank">link</a></div>`,
                     });
                 }
-                var htmlToImg = (receipt) => {
-                    var self = this;
+                var htmlToURI = (receipt) => {
                     $('.pos-receipt-print').html(receipt);
-                    var promise = new Promise(function (resolve, reject) {
+                    return new Promise((resolve, reject) => {
                         var receipt = $('.pos-receipt-print>.pos-receipt');
                         html2canvas(receipt[0], {
                             onparsed: function(queue) {
@@ -76,34 +83,57 @@ odoo.define('point_of_sale.AbstractReceiptScreen', function (require) {
                             },
                             onrendered: function (canvas) {
                                 $('.pos-receipt-print').empty();
-                                resolve(canvas.toDataURL('image/jpeg').replace('data:image/jpeg;base64,',''));
+                                resolve(canvas.toDataURL('image/jpeg'));
                             },
-                            letterRendering: self.env.pos.htmlToImgLetterRendering(),
+                            letterRendering: this.env.pos.htmlToImgLetterRendering(),
                         })
                     });
-                    return promise;
+                }
+                var base64toBlob = (b64Data, contentType='', sliceSize=512) => {
+                    const byteCharacters = atob(b64Data);
+                    const byteArrays = [];
+                    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                      const slice = byteCharacters.slice(offset, offset + sliceSize);
+                      const byteNumbers = new Array(slice.length);
+                      for (let i = 0; i < slice.length; i++) {
+                        byteNumbers[i] = slice.charCodeAt(i);
+                      }
+                      const byteArray = new Uint8Array(byteNumbers);
+                      byteArrays.push(byteArray);
+                    }
+                    const blob = new Blob(byteArrays, {type: contentType});
+                    return blob;
                 }
 
                 // if Deceipt QR code was generated, re-use
-                if (this.currentOrder._deceiptGenerated) {
+                if (isDeceiptGenerated) {
                     console.log("No need to generate qr code");
-                    var qrCode = this.currentOrder._deceiptURL;
                     await showQRCode(qrCode);
                 } else {
                     console.log("generate qr code");
 
-                    // Generate receipt image and upload
-                    // var receipt = this.orderReceipt.el.outerHTML;
-                    // var image = await htmlToImg(receipt);
-                    // var content = $.ajax({
-                    //     url: 'https://google.com',
-                    //     method: 'GET',
-                    //     timeout: 1000,
-                    // });
-        
+                    // create receipt upload url
+                    var { UploadURL, ReceiptID } = await $.ajax({
+                        type: "POST",
+                        url: `xxx`,
+                        data: JSON.stringify({
+                            HostID: xxx,
+                            LocalFilePath: "xxx"   
+                        })
+                    });
+                    // upload receipt
+                    var receiptURI = await htmlToURI(receiptHTML);
+                    var receiptBlob = base64toBlob(receiptURI.split(",")[1]);
+                    $.ajax({
+                        type: "PUT",
+                        url: UploadURL,
+                        data: receiptBlob,
+                        processData: false,
+                        contentType: false
+                    })
                     
                     // upload successfully
-                    var deceiptURL = "https://google.com";
+                    var deceiptURL = `xxx`;
                     this.currentOrder._deceiptGenerated = true;
                     this.currentOrder._deceiptURL = deceiptURL;
                     
@@ -112,7 +142,7 @@ odoo.define('point_of_sale.AbstractReceiptScreen', function (require) {
             } catch (e) {
                 await this.showPopup('ErrorPopup', {
                     title: "Error when generating Deceipt QR code",
-                    body: e,
+                    body: e.responseJSON ? e.responseJSON.message || e.responseJSON.Message : e,
                 });
             }
         }
