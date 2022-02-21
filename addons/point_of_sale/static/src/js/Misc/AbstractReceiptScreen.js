@@ -41,38 +41,14 @@ odoo.define('point_of_sale.AbstractReceiptScreen', function (require) {
         }
         async _generateDeceiptQR() {
             try {
-                var API_BASE_URL = "xxx";
-                var PORTAL_BASE_URL = "xxx";
-                var qrCode = this.currentOrder._deceiptURL;
-                var isDeceiptGenerated = this.currentOrder._deceiptGenerated
+                var API_BASE_URL = this.env.pos.config.deceipt_api_base_url;
+                var PORTAL_BASE_URL = this.env.pos.config.deceipt_portal_base_url;
                 var receiptHTML = this.orderReceipt.el.outerHTML;
-                var qrCodeURI = "";
 
-                // some work around as qrcode lib need specific DOM element to create
-                var generateQRCodeURI = (url) => {
-                    return new Promise(function (resolve, reject) {
-                        if (qrCodeURI != "") resolve(qrCodeURI);
-                        var qrcode = new QRCode(document.createElement('div'), {
-                            text: url,
-                            width: 128,
-                            height: 128,
-                            colorDark : "#000000",
-                            colorLight : "#ffffff",
-                            correctLevel : QRCode.CorrectLevel.H
-                        });
-                        qrcode._oDrawing._elImage.onload = ev => { 
-                            qrCodeURI = ev.target.src;
-                            resolve(ev.target.src);
-                        }
-                    });
-                }
-                var showQRCode = async (url) => {
-                    return await this.showPopup('DeceiptPopup', {
-                        title: "Deceipt QR",
-                        body: `<img src="${await generateQRCodeURI(url)}"><div><a href="${url}" target="_blank">link</a></div>`,
-                    });
-                }
-                var htmlToURI = (receipt) => {
+                var deceiptURL = this.currentOrder._deceiptURL;
+                var isDeceiptGenerated = this.currentOrder._deceiptGenerated
+                
+                var htmlToBase64 = (receipt) => {
                     $('.pos-receipt-print').html(receipt);
                     return new Promise((resolve, reject) => {
                         var receipt = $('.pos-receipt-print>.pos-receipt');
@@ -83,7 +59,7 @@ odoo.define('point_of_sale.AbstractReceiptScreen', function (require) {
                             },
                             onrendered: function (canvas) {
                                 $('.pos-receipt-print').empty();
-                                resolve(canvas.toDataURL('image/jpeg'));
+                                resolve(canvas.toDataURL('image/jpeg').split(",")[1]);
                             },
                             letterRendering: this.env.pos.htmlToImgLetterRendering(),
                         })
@@ -107,37 +83,32 @@ odoo.define('point_of_sale.AbstractReceiptScreen', function (require) {
 
                 // if Deceipt QR code was generated, re-use
                 if (isDeceiptGenerated) {
-                    console.log("No need to generate qr code");
-                    await showQRCode(qrCode);
+                    await this.showPopup('DeceiptPopup', { deceiptURL });
                 } else {
-                    console.log("generate qr code");
-
                     // create receipt upload url
                     var { UploadURL, ReceiptID } = await $.ajax({
                         type: "POST",
-                        url: `xxx`,
+                        url: `${API_BASE_URL}/receipt/upload-url`,
                         data: JSON.stringify({
-                            HostID: xxx,
-                            LocalFilePath: "xxx"   
+                            HostID: 1,
+                            LocalFilePath: "local/file/path"   
                         })
                     });
                     // upload receipt
-                    var receiptURI = await htmlToURI(receiptHTML);
-                    var receiptBlob = base64toBlob(receiptURI.split(",")[1]);
                     $.ajax({
                         type: "PUT",
                         url: UploadURL,
-                        data: receiptBlob,
+                        data: base64toBlob(await htmlToBase64(receiptHTML)),
                         processData: false,
                         contentType: false
                     })
                     
                     // upload successfully
-                    var deceiptURL = `xxx`;
+                    deceiptURL = `${PORTAL_BASE_URL}/receipt?id=${ReceiptID}`;
                     this.currentOrder._deceiptGenerated = true;
                     this.currentOrder._deceiptURL = deceiptURL;
                     
-                    await showQRCode(deceiptURL);
+                    await this.showPopup('DeceiptPopup', { deceiptURL });
                 }
             } catch (e) {
                 await this.showPopup('ErrorPopup', {

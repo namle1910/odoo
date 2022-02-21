@@ -175,6 +175,13 @@ odoo.define('point_of_sale.Chrome', function(require) {
                     // Basically, preload the images in the background.
                     this._preloadImages();
                 });
+
+
+                // Validate Deceipt Config
+                if (!(this.env.pos.config.deceipt_api_base_url && this.env.pos.config.deceipt_portal_base_url)) {
+                    throw new Error("Please setup Deceipt base URL in POS config!");
+                }
+                
             } catch (error) {
                 let title = 'Unknown Error',
                     body;
