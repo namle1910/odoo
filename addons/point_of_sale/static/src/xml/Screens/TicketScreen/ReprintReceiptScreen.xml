@@ -12,6 +12,9 @@
                     </span>
                 </div>
                 <div class="centered-content">
+                    <div class="button print" t-on-click="tryReprintDeceipt">
+                        <i class="fa fa-qrcode"></i> Deceipt QR
+                    </div>
                     <div class="button print" t-on-click="tryReprint">
                         <i class="fa fa-print"></i> Print Receipt
                     </div>
