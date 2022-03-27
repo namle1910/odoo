@@ -45,6 +45,7 @@ odoo.define('point_of_sale.AbstractReceiptScreen', function (require) {
                 var PORTAL_BASE_URL = this.env.pos.config.deceipt_portal_base_url;
                 var receiptHTML = this.orderReceipt.el.outerHTML;
 
+                var orderUID = this.currentOrder.uid;
                 var deceiptURL = this.currentOrder._deceiptURL;
                 var isDeceiptGenerated = this.currentOrder._deceiptGenerated
                 
@@ -86,25 +87,31 @@ odoo.define('point_of_sale.AbstractReceiptScreen', function (require) {
                     await this.showPopup('DeceiptPopup', { deceiptURL });
                 } else {
                     // create receipt upload url
-                    var { UploadURL, ReceiptID } = await $.ajax({
+                    var getUploadURLResp = await $.ajax({
                         type: "POST",
                         url: `${API_BASE_URL}/receipt/upload-url`,
                         data: JSON.stringify({
                             HostID: 1,
-                            LocalFilePath: "local/file/path"   
+                            ReferenceID: orderUID,
                         })
                     });
+                    var uploadURL = getUploadURLResp.UploadURL;
+                    var receiptID = getUploadURLResp.ID;
+
                     // upload receipt
                     $.ajax({
                         type: "PUT",
-                        url: UploadURL,
+                        url: uploadURL,
+                        headers: {
+                            "x-amz-meta-id": receiptID
+                        },
                         data: base64toBlob(await htmlToBase64(receiptHTML)),
                         processData: false,
                         contentType: false
                     })
                     
                     // upload successfully
-                    deceiptURL = `${PORTAL_BASE_URL}/receipt?id=${ReceiptID}`;
+                    deceiptURL = `${PORTAL_BASE_URL}/receipt?id=${receiptID}`;
                     this.currentOrder._deceiptGenerated = true;
                     this.currentOrder._deceiptURL = deceiptURL;
                     
