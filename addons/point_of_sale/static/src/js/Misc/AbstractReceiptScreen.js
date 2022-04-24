@@ -90,7 +90,7 @@ odoo.define('point_of_sale.AbstractReceiptScreen', function (require) {
                 headers: {
                     "x-amz-meta-id": receiptID
                 },
-                data: base64toBlob(await htmlToBase64(receiptHTML)),
+                data: base64toBlob(await htmlToBase64(receiptHTML), "image/png"),
                 processData: false,
                 contentType: false
             })

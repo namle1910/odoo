@@ -8,7 +8,7 @@
                     <header class="title drag-handle">
                         <t t-esc="props.title" />
                     </header>
-                    <main class="body" style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                    <main class="body" style="height: 400px; display: flex; align-items: center; justify-content: center;">
                         <t t-if="deceiptPopupState.loading == true">
                             <i class="fa fa-spinner fa-spin" style="font-size: 2em;"/>
                         </t>

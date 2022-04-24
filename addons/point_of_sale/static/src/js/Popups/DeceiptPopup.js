@@ -22,8 +22,8 @@ odoo.define('point_of_sale.DeceiptPopup', function(require) {
             return new Promise((resolve, _) => {
                 var qrcode = new QRCode(document.createElement('div'), {
                     text: url,
-                    width: 128,
-                    height: 128,
+                    width: 300,
+                    height: 300,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
